@@ -1,8 +1,9 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useProducts } from '@/composables/useProducts'
+import api from '@/api' // Axios instance configured with your API base URL
 
-const { products } = useProducts()
+const { products, refreshProducts } = useProducts() // refreshProducts is optional
 
 // Search query to filter products
 const searchQuery = ref('')
@@ -25,7 +26,7 @@ const filteredProducts = computed(() => {
 
 // Function to apply profit margin to a product.
 // New selling price = costPrice * (1 + profit/100)
-function applyProfitMargin(productId) {
+async function applyProfitMargin(productId) {
   const profit = parseFloat(profitMarginValues.value[productId])
   if (isNaN(profit) || profit < 0) {
     alert('Please enter a valid profit margin percentage (>= 0)')
@@ -33,15 +34,23 @@ function applyProfitMargin(productId) {
   }
   const product = products.value.find((p) => p.id === productId)
   if (product) {
-    product.sellingPrice = parseFloat((product.costPrice * (1 + profit / 100)).toFixed(2))
-    alert(
-      `Profit margin of ${profit}% applied to ${product.name}. New selling price: ${product.sellingPrice}/-`,
-    )
+    const newSellingPrice = parseFloat((product.costPrice * (1 + profit / 100)).toFixed(2))
+    try {
+      await api.patch(`/products/${product.id}`, { sellingPrice: newSellingPrice })
+      product.sellingPrice = newSellingPrice // update local state
+      alert(
+        `Profit margin of ${profit}% applied to ${product.name}. New selling price: ${product.sellingPrice}/-`,
+      )
+      // Optionally, refresh the products list:
+      // await refreshProducts()
+    } catch (error) {
+      alert('Error updating price: ' + error.message)
+    }
   }
 }
 
 // Function to manually update selling price using an entered price.
-function applyManualPrice(productId) {
+async function applyManualPrice(productId) {
   const newPrice = parseFloat(manualPriceValues.value[productId])
   if (isNaN(newPrice) || newPrice < 0) {
     alert('Please enter a valid price')
@@ -49,8 +58,15 @@ function applyManualPrice(productId) {
   }
   const product = products.value.find((p) => p.id === productId)
   if (product) {
-    product.sellingPrice = parseFloat(newPrice.toFixed(2))
-    alert(`New selling price for ${product.name} updated to ${product.sellingPrice}/-`)
+    try {
+      await api.patch(`/products/${product.id}`, { sellingPrice: newPrice })
+      product.sellingPrice = parseFloat(newPrice.toFixed(2))
+      alert(`New selling price for ${product.name} updated to ${product.sellingPrice}/-`)
+      // Optionally, refresh the products list:
+      // await refreshProducts()
+    } catch (error) {
+      alert('Error updating price: ' + error.message)
+    }
   }
 }
 </script>

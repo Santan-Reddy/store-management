@@ -1,8 +1,22 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useProducts } from '@/composables/useProducts'
+import api from '@/api'
 
-const { products } = useProducts()
+const { products, refreshProducts } = useProducts()
+
+// Search query for filtering products
+const searchQuery = ref('')
+
+// Computed property to filter products based on search query
+const filteredProducts = computed(() => {
+  if (!searchQuery.value.trim()) {
+    return products.value
+  }
+  return products.value.filter((product) =>
+    product.name.toLowerCase().includes(searchQuery.value.toLowerCase()),
+  )
+})
 
 // --- Existing Products Update --- //
 const updateQuantities = ref({})
@@ -10,43 +24,72 @@ const updateExpiryDates = ref({})
 const updateRacks = ref({})
 const updateRows = ref({})
 
-function updateStock(productId) {
-  const newQty = parseInt(updateQuantities.value[productId])
+// Update an existing product's stock details via backend API
+async function updateStock(prodId) {
+  const newQty = parseInt(updateQuantities.value[prodId])
   if (isNaN(newQty)) {
     alert('Please enter a valid number for quantity')
     return
   }
 
-  const newExpiry = updateExpiryDates.value[productId]
+  const newExpiry = updateExpiryDates.value[prodId]
   if (!newExpiry || newExpiry.trim() === '') {
     alert('Please enter a valid expiry date')
     return
   }
 
-  const newRack = updateRacks.value[productId]
+  const newRack = updateRacks.value[prodId]
   if (!newRack || newRack.trim() === '') {
     alert('Please enter a valid rack value')
     return
   }
 
-  const newRow = updateRows.value[productId]
+  const newRow = updateRows.value[prodId]
   if (!newRow || newRow.trim() === '') {
     alert('Please enter a valid row value')
     return
   }
 
-  const product = products.value.find((p) => p.id === productId)
+  const product = products.value.find((p) => p.id === prodId || p._id === prodId)
   if (product) {
-    product.quantity = newQty
-    product.expiryDate = newExpiry
-    product.location.rack = newRack
-    product.location.row = newRow
+    const productId = product.id || product._id
+    try {
+      await api.patch(`/products/${productId}`, {
+        quantity: newQty,
+        expiryDate: newExpiry,
+        location: { rack: newRack, row: newRow },
+      })
+      // Update local state after a successful API call
+      product.quantity = newQty
+      product.expiryDate = newExpiry
+      product.location.rack = newRack
+      product.location.row = newRow
 
-    // Optionally update the inputs to show the new values.
-    updateQuantities.value[productId] = newQty
-    updateExpiryDates.value[productId] = newExpiry
-    updateRacks.value[productId] = newRack
-    updateRows.value[productId] = newRow
+      updateQuantities.value[prodId] = newQty
+      updateExpiryDates.value[prodId] = newExpiry
+      updateRacks.value[prodId] = newRack
+      updateRows.value[prodId] = newRow
+      alert(`${product.name} updated successfully!`)
+    } catch (err) {
+      alert('Error updating product: ' + err.message)
+    }
+  }
+}
+
+// Delete a product via backend API
+async function deleteProduct(prodId) {
+  const product = products.value.find((p) => p.id === prodId || p._id === prodId)
+  if (!product) return
+  const productId = product.id || product._id
+  if (confirm(`Are you sure you want to delete ${product.name}?`)) {
+    try {
+      await api.delete(`/products/${productId}`)
+      alert(`${product.name} deleted successfully!`)
+      // Refresh the products list
+      await refreshProducts()
+    } catch (error) {
+      alert('Error deleting product: ' + error.message)
+    }
   }
 }
 
@@ -74,7 +117,7 @@ const categoryOptions = [
 // New variable to capture a custom category when "Other" is selected.
 const newCategoryInput = ref('')
 
-// New product object (soldCount is omitted from the form; set to 0 by default)
+// New product object (soldCount is omitted; default to 0)
 const newProduct = ref({
   name: '',
   quantity: '',
@@ -90,7 +133,7 @@ const newProduct = ref({
   },
 })
 
-function addNewProduct() {
+async function addNewProduct() {
   if (!newProduct.value.name.trim()) {
     alert('Please enter product name')
     return
@@ -148,7 +191,7 @@ function addNewProduct() {
     alert('Please enter a valid row')
     return
   }
-  // Generate a new id using Date.now()
+  // Generate a new id using Date.now() (or let backend generate one)
   const newId = Date.now()
   const productToAdd = {
     id: newId,
@@ -166,31 +209,56 @@ function addNewProduct() {
       row: newProduct.value.location.row,
     },
   }
-  products.value.push(productToAdd)
-  alert('Product added successfully!')
-  // Reset the form and close modal
-  newProduct.value = {
-    name: '',
-    quantity: '',
-    image: '',
-    mrp: '',
-    sellingPrice: '',
-    costPrice: '',
-    expiryDate: '',
-    category: '',
-    location: {
-      rack: '',
-      row: '',
-    },
+  try {
+    await api.post('/products', productToAdd)
+    alert('Product added successfully!')
+    // Refresh the products list from backend
+    await refreshProducts()
+    // Reset the form and close modal
+    newProduct.value = {
+      name: '',
+      quantity: '',
+      image: '',
+      mrp: '',
+      sellingPrice: '',
+      costPrice: '',
+      expiryDate: '',
+      category: '',
+      location: {
+        rack: '',
+        row: '',
+      },
+    }
+    newCategoryInput.value = ''
+    showModal.value = false
+  } catch (error) {
+    alert('Error adding product: ' + error.message)
   }
-  newCategoryInput.value = ''
-  showModal.value = false
 }
+// async function deleteProduct(prodId) {
+//   try {
+//     await api.delete(`/products/${prodId}`)
+//     alert('Product deleted successfully!')
+//     await refreshProducts()
+//   } catch (error) {
+//     alert('Error deleting product: ' + error.message)
+//   }
+// }
 </script>
 
 <template>
   <div class="update-stock-container">
     <h1>Update Stock</h1>
+
+    <!-- Search Bar for filtering products -->
+    <div class="search-bar">
+      <input
+        v-model="searchQuery"
+        type="text"
+        placeholder="Search products..."
+        class="search-input"
+      />
+    </div>
 
     <!-- Button to trigger New Product Modal -->
     <div class="add-product-btn-container">
@@ -272,23 +340,24 @@ function addNewProduct() {
           <th>Current Row</th>
           <th>New Row</th>
           <th>Action</th>
+          <th>Delete</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="product in products" :key="product.id">
+        <tr v-for="product in filteredProducts" :key="product.id || product._id">
           <td>{{ product.name }}</td>
           <td>{{ product.quantity }}</td>
           <td>
             <input
               type="number"
-              v-model="updateQuantities[product.id]"
+              v-model="updateQuantities[product.id || product._id]"
               :placeholder="product.quantity"
             />
           </td>
           <td>
             <input
               type="date"
-              v-model="updateExpiryDates[product.id]"
+              v-model="updateExpiryDates[product.id || product._id]"
               :placeholder="product.expiryDate"
             />
           </td>
@@ -296,7 +365,7 @@ function addNewProduct() {
           <td>
             <input
               type="text"
-              v-model="updateRacks[product.id]"
+              v-model="updateRacks[product.id || product._id]"
               :placeholder="product.location.rack"
             />
           </td>
@@ -304,12 +373,15 @@ function addNewProduct() {
           <td>
             <input
               type="text"
-              v-model="updateRows[product.id]"
+              v-model="updateRows[product.id || product._id]"
               :placeholder="product.location.row"
             />
           </td>
           <td>
-            <button @click="updateStock(product.id)">Update</button>
+            <button @click="updateStock(product.id || product._id)">Update</button>
+          </td>
+          <td>
+            <button @click="deleteProduct(product.id || product._id)">Delete</button>
           </td>
         </tr>
       </tbody>
@@ -321,6 +393,19 @@ function addNewProduct() {
 .update-stock-container {
   padding: 20px;
   background-color: #fafafa;
+}
+
+.search-bar {
+  margin-bottom: 20px;
+  text-align: right;
+}
+
+.search-input {
+  width: 300px;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 .add-product-btn-container {

@@ -1,8 +1,15 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { usePurchases } from '@/composables/usePurchases'
 
-const { purchases } = usePurchases()
+// Destructure purchases and fetchPurchases from the composable
+const { purchases, fetchPurchases } = usePurchases()
+
+// Fetch purchases from backend when component mounts
+onMounted(() => {
+  fetchPurchases()
+})
+
 const selectedPurchase = ref(null)
 const searchQuery = ref('')
 
