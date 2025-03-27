@@ -60,6 +60,10 @@ function selectPurchase(purchase) {
         <p><strong>Customer Name:</strong> {{ selectedPurchase.customerName }}</p>
         <p><strong>Phone Number:</strong> {{ selectedPurchase.phone }}</p>
         <p><strong>Purchase Date:</strong> {{ selectedPurchase.purchaseDate }}</p>
+        <!-- New fields to show price details -->
+        <p><strong>Actual Price:</strong> {{ selectedPurchase.actualPrice }}/-</p>
+        <p><strong>Discount:</strong> {{ selectedPurchase.overallDiscount }}%</p>
+        <p><strong>Final Price:</strong> {{ selectedPurchase.finalPrice }}/-</p>
         <table class="purchase-details-table">
           <thead>
             <tr>
@@ -79,9 +83,6 @@ function selectPurchase(purchase) {
           </tbody>
         </table>
         <h3>Total: {{ selectedPurchase.total }}/-</h3>
-        <p v-if="selectedPurchase.overallDiscount">
-          <strong>Overall Discount:</strong> {{ selectedPurchase.overallDiscount }}%
-        </p>
       </div>
     </div>
   </div>

@@ -7,7 +7,7 @@ const navLinks = ref([
   { name: 'New Bill ', path: '/new-bill' },
   { name: 'Update Stock', path: '/update-stock' },
   { name: 'Expired Stock', path: '/expired-stock' },
-  { name: 'Discount', path: '/discount' },
+  { name: 'Update Price', path: '/update-price' },
   { name: 'Admin', path: '/profile' },
 ])
 

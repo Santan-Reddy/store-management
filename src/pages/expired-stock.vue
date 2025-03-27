@@ -49,28 +49,34 @@ function removeAllExpired() {
   }
 }
 
-// --- Discount functionality for expiring products --- //
+// --- Profit functionality for expiring products --- //
 
-// Reactive object to store discount values keyed by product id.
-const discountValues = ref({})
+// Reactive object to store profit percentages keyed by product id.
+const profitValues = ref({})
 
-// Function to apply discount to a product that is expiring soon.
-// It updates the sellingPrice based on the entered discount percentage.
-function applyDiscount(productId) {
-  const discount = parseFloat(discountValues.value[productId])
-  if (isNaN(discount) || discount < 0 || discount > 100) {
-    alert('Please enter a valid discount percentage (0-100)')
+// Function to apply profit margin to a product that is expiring soon.
+// New selling price is calculated based on costPrice and entered profit percentage.
+function applyProfit(productId) {
+  const profit = parseFloat(profitValues.value[productId])
+  if (isNaN(profit) || profit < 0) {
+    alert('Please enter a valid profit percentage (>= 0)')
     return
   }
   const product = products.value.find((p) => p.id === productId)
   if (product) {
-    // Apply discount on current sellingPrice.
-    // (Note: This directly updates the sellingPrice. In a real app, consider storing original prices separately.)
-    product.sellingPrice = parseFloat((product.sellingPrice * (1 - discount / 100)).toFixed(2))
+    product.sellingPrice = parseFloat((product.costPrice * (1 + profit / 100)).toFixed(2))
     alert(
-      `Discount of ${discount}% applied to ${product.name}. New price: ${product.sellingPrice}/-`,
+      `Profit margin of ${profit}% applied to ${product.name}. New selling price: ${product.sellingPrice}/-`,
     )
   }
+}
+
+// Helper function to compute current profit percentage from cost & selling prices.
+function getCurrentProfit(product) {
+  if (product.costPrice > 0) {
+    return ((product.sellingPrice / product.costPrice - 1) * 100).toFixed(2)
+  }
+  return 'N/A'
 }
 </script>
 
@@ -122,8 +128,9 @@ function applyDiscount(productId) {
             <th>Current Quantity</th>
             <th>Expiry Date</th>
             <th>Days to Expiry</th>
-            <th>Discount (%)</th>
+            <th>Profit (%)</th>
             <th>Action</th>
+            <th>Price Info</th>
           </tr>
         </thead>
         <tbody>
@@ -135,14 +142,18 @@ function applyDiscount(productId) {
             <td>
               <input
                 type="number"
-                v-model="discountValues[product.id]"
+                v-model="profitValues[product.id]"
                 min="0"
-                max="100"
-                placeholder="Discount"
+                placeholder="Profit %"
               />
             </td>
             <td>
-              <button @click="applyDiscount(product.id)">Apply Discount</button>
+              <button @click="applyProfit(product.id)">Apply Profit</button>
+            </td>
+            <td>
+              Cost: {{ product.costPrice }}/- , Selling: {{ product.sellingPrice }}/- ({{
+                getCurrentProfit(product)
+              }}%)
             </td>
           </tr>
         </tbody>

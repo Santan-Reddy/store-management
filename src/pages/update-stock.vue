@@ -53,7 +53,7 @@ function updateStock(productId) {
 // --- New Product Modal --- //
 const showModal = ref(false)
 
-// Define category options for the dropdown.
+// Predefined category options for the dropdown.
 const categoryOptions = [
   'Fruits',
   'Dairy',
@@ -71,6 +71,9 @@ const categoryOptions = [
   'Frozen Foods',
 ]
 
+// New variable to capture a custom category when "Other" is selected.
+const newCategoryInput = ref('')
+
 // New product object (soldCount is omitted from the form; set to 0 by default)
 const newProduct = ref({
   name: '',
@@ -78,6 +81,7 @@ const newProduct = ref({
   image: '',
   mrp: '',
   sellingPrice: '',
+  costPrice: '', // New field for cost price
   expiryDate: '',
   category: '',
   location: {
@@ -106,6 +110,20 @@ function addNewProduct() {
     alert('Please enter a valid selling price')
     return
   }
+  const costPrice = parseFloat(newProduct.value.costPrice)
+  if (isNaN(costPrice)) {
+    alert('Please enter a valid cost price')
+    return
+  }
+  // Validate that costPrice and sellingPrice are not more than MRP
+  if (costPrice > mrp) {
+    alert('Cost Price cannot be greater than MRP')
+    return
+  }
+  if (sellingPrice > mrp) {
+    alert('Selling Price cannot be greater than MRP')
+    return
+  }
   if (!newProduct.value.expiryDate) {
     alert('Please enter a valid expiry date')
     return
@@ -113,6 +131,14 @@ function addNewProduct() {
   if (!newProduct.value.category.trim()) {
     alert('Please select a category')
     return
+  }
+  // If the user selects "Other", ensure a new category is provided.
+  if (newProduct.value.category === 'Other') {
+    if (!newCategoryInput.value.trim()) {
+      alert('Please enter a new category')
+      return
+    }
+    newProduct.value.category = newCategoryInput.value.trim()
   }
   if (!newProduct.value.location.rack.trim()) {
     alert('Please enter a valid rack')
@@ -132,6 +158,7 @@ function addNewProduct() {
     image: newProduct.value.image,
     mrp: mrp,
     sellingPrice: sellingPrice,
+    costPrice: costPrice, // include costPrice
     expiryDate: newProduct.value.expiryDate,
     category: newProduct.value.category,
     location: {
@@ -148,6 +175,7 @@ function addNewProduct() {
     image: '',
     mrp: '',
     sellingPrice: '',
+    costPrice: '',
     expiryDate: '',
     category: '',
     location: {
@@ -155,6 +183,7 @@ function addNewProduct() {
       row: '',
     },
   }
+  newCategoryInput.value = ''
   showModal.value = false
 }
 </script>
@@ -193,6 +222,10 @@ function addNewProduct() {
           <input type="number" v-model="newProduct.sellingPrice" placeholder="Selling Price" />
         </div>
         <div class="form-row">
+          <label>Cost Price:</label>
+          <input type="number" v-model="newProduct.costPrice" placeholder="Cost Price" />
+        </div>
+        <div class="form-row">
           <label>Expiry Date:</label>
           <input type="date" v-model="newProduct.expiryDate" />
         </div>
@@ -203,7 +236,13 @@ function addNewProduct() {
             <option v-for="option in categoryOptions" :key="option" :value="option">
               {{ option }}
             </option>
+            <option value="Other">Other</option>
           </select>
+        </div>
+        <!-- Show new category input if "Other" is selected -->
+        <div v-if="newProduct.category === 'Other'" class="form-row">
+          <label>New Category:</label>
+          <input type="text" v-model="newCategoryInput" placeholder="Enter new category" />
         </div>
         <div class="form-row">
           <label>Rack:</label>

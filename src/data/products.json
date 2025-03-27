@@ -7,6 +7,7 @@
     "image": "https://freshindiaorganics.com/cdn/shop/products/Apples.jpg?v=1686739530",
     "mrp": 262.5,
     "sellingPrice": 225.0,
+    "costPrice": 200.0,
     "location": { "rack": "A1", "row": "B1" },
     "expiryDate": "2025-04-01",
     "category": "Fruits"
@@ -19,6 +20,7 @@
     "image": "https://m.media-amazon.com/images/I/51ebZJ+DR4L._AC_UF1000,1000_QL80_.jpg",
     "mrp": 112.5,
     "sellingPrice": 90.0,
+    "costPrice": 75.0,
     "location": { "rack": "A1", "row": "B2" },
     "expiryDate": "2025-03-22",
     "category": "Fruits"
@@ -31,6 +33,7 @@
     "image": "https://waterbutlers.com/cdn/shop/files/Screenshot2024-02-08at7.19.55PM.png?v=1707438033&width=480",
     "mrp": 150.0,
     "sellingPrice": 135.0,
+    "costPrice": 120.0,
     "location": { "rack": "B1", "row": "C1" },
     "expiryDate": "2025-03-19",
     "category": "Dairy"
@@ -43,6 +46,7 @@
     "image": "https://www.buildingfeasts.com/wp-content/uploads/2024/02/BALLMYMALOEBREADCOVER1.jpeg",
     "mrp": 135.0,
     "sellingPrice": 112.5,
+    "costPrice": 100.0,
     "location": { "rack": "B1", "row": "C2" },
     "expiryDate": "2025-03-20",
     "category": "Bakery"
@@ -55,6 +59,7 @@
     "image": "https://www.tasteofhome.com/wp-content/uploads/2022/09/GettyImages-470340853.jpg",
     "mrp": 300.0,
     "sellingPrice": 262.5,
+    "costPrice": 240.0,
     "location": { "rack": "C1", "row": "D1" },
     "expiryDate": "2025-04-15",
     "category": "Dairy"
@@ -67,6 +72,7 @@
     "image": "https://img2.exportersindia.com/product_images/bc-full/2021/8/9170796/fresh-eggs-1628925453-5941900.jpeg",
     "mrp": 187.5,
     "sellingPrice": 165.0,
+    "costPrice": 150.0,
     "location": { "rack": "C1", "row": "D2" },
     "expiryDate": "2025-03-18",
     "category": "Dairy"
@@ -79,6 +85,7 @@
     "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQs17kjS1A_0bXy3ka-1k0xzAVzGInvC3vScg&s",
     "mrp": 225.0,
     "sellingPrice": 202.5,
+    "costPrice": 180.0,
     "location": { "rack": "D1", "row": "E1" },
     "expiryDate": "2025-03-25",
     "category": "Beverages"
@@ -91,6 +98,7 @@
     "image": "https://epigamiastore.com/cdn/shop/products/Natural_400g-01_4c13169a-d144-4cb1-9c97-3ef364a6fd59_2048x.png?v=1739179686",
     "mrp": 90.0,
     "sellingPrice": 75.0,
+    "costPrice": 65.0,
     "location": { "rack": "D1", "row": "E2" },
     "expiryDate": "2025-03-21",
     "category": "Dairy"
@@ -103,6 +111,7 @@
     "image": "https://assets.tendercuts.in/product/C/H/594e4559-f6b7-417d-9aac-d0643b5711d3.jpg",
     "mrp": 412.5,
     "sellingPrice": 375.0,
+    "costPrice": 350.0,
     "location": { "rack": "E1", "row": "F1" },
     "expiryDate": "2025-03-20",
     "category": "Meat"
@@ -115,6 +124,7 @@
     "image": "https://www.freshtohome.com/blog/wp-content/uploads/2024/08/goat-curry-cut.jpg",
     "mrp": 450.0,
     "sellingPrice": 412.5,
+    "costPrice": 400.0,
     "location": { "rack": "E1", "row": "F2" },
     "expiryDate": "2025-03-20",
     "category": "Meat"
@@ -127,6 +137,7 @@
     "image": "https://rukminim3.flixcart.com/image/850/1000/kar44280/chips/h/6/6/167-india-s-magic-masala-lay-s-original-imafs8vdgpcshgxq.jpeg?q=20&crop=false",
     "mrp": 600.0,
     "sellingPrice": 525.0,
+    "costPrice": 500.0,
     "location": { "rack": "F1", "row": "G1" },
     "expiryDate": "2025-03-19",
     "category": "Snacks"
@@ -139,6 +150,7 @@
     "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTE4iOVSrWQNR-mxX8duapJVX6jjHN7UbpvQQ&s",
     "mrp": 187.5,
     "sellingPrice": 165.0,
+    "costPrice": 150.0,
     "location": { "rack": "F1", "row": "G2" },
     "expiryDate": "2025-03-27",
     "category": "Vegetables"
@@ -151,6 +163,7 @@
     "image": "https://cdn11.bigcommerce.com/s-kc25pb94dz/images/stencil/1280x1280/products/271/762/Carrot__40927.1634584458.jpg?c=2",
     "mrp": 75.0,
     "sellingPrice": 67.5,
+    "costPrice": 60.0,
     "location": { "rack": "G1", "row": "H1" },
     "expiryDate": "2025-05-01",
     "category": "Vegetables"
@@ -163,6 +176,7 @@
     "image": "https://gabbarfarms.com/cdn/shop/products/Spinach.jpg?v=1620713074",
     "mrp": 90.0,
     "sellingPrice": 75.0,
+    "costPrice": 70.0,
     "location": { "rack": "G1", "row": "H2" },
     "expiryDate": "2025-03-20",
     "category": "Vegetables"
@@ -175,6 +189,7 @@
     "image": "https://balchem.com/wp-content/uploads/2024/10/cereal-markets-scaled.jpeg",
     "mrp": 337.5,
     "sellingPrice": 300.0,
+    "costPrice": 270.0,
     "location": { "rack": "H1", "row": "I1" },
     "expiryDate": "2025-08-01",
     "category": "Breakfast Cereals"
@@ -187,6 +202,7 @@
     "image": "https://5.imimg.com/data5/SELLER/Default/2022/3/LJ/ZL/GQ/49710505/soft-basmati-rice-500x500.png",
     "mrp": 750.0,
     "sellingPrice": 675.0,
+    "costPrice": 600.0,
     "location": { "rack": "H1", "row": "I2" },
     "expiryDate": "2026-01-01",
     "category": "Grains"
@@ -199,6 +215,7 @@
     "image": "https://cheeseknees.com/wp-content/uploads/2022/06/Cheese-Pasta-sq.jpg",
     "mrp": 262.5,
     "sellingPrice": 240.0,
+    "costPrice": 220.0,
     "location": { "rack": "I1", "row": "J1" },
     "expiryDate": "2025-12-31",
     "category": "Pasta"
@@ -211,6 +228,7 @@
     "image": "https://www.heart.org/-/media/Images/News/2022/September-2022/0928EIOLIOliveOil_SC.jpg?h=600&w=800&sc_lang=en&hash=EB37CC018EC674ED6145F340DF935433",
     "mrp": 900.0,
     "sellingPrice": 825.0,
+    "costPrice": 750.0,
     "location": { "rack": "I1", "row": "J2" },
     "expiryDate": "2026-06-01",
     "category": "Oils"
@@ -223,6 +241,7 @@
     "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZIPfaj4NrvSMGkobsdN0JUBNevQAbLoymRQ&s",
     "mrp": 187.5,
     "sellingPrice": 165.0,
+    "costPrice": 150.0,
     "location": { "rack": "J1", "row": "K1" },
     "expiryDate": "2025-11-15",
     "category": "Condiments"
@@ -235,6 +254,7 @@
     "image": "https://m.media-amazon.com/images/I/514xVUdk6ML._AC_UF894,1000_QL80_.jpg",
     "mrp": 112.5,
     "sellingPrice": 97.5,
+    "costPrice": 85.0,
     "location": { "rack": "J1", "row": "K2" },
     "expiryDate": "2025-09-10",
     "category": "Snacks"
@@ -247,6 +267,7 @@
     "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSuw5yEVqh2xIWjG1nQ7RPzafj1Q_CDheA8CA&s",
     "mrp": 135.0,
     "sellingPrice": 112.5,
+    "costPrice": 100.0,
     "location": { "rack": "K1", "row": "L1" },
     "expiryDate": "2025-10-05",
     "category": "Confectionery"
@@ -259,6 +280,7 @@
     "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRilcxYZunkXUh0i9B5SkIg6Hsj18vf5ZUr9A&s",
     "mrp": 600.0,
     "sellingPrice": 562.5,
+    "costPrice": 550.0,
     "location": { "rack": "K1", "row": "L2" },
     "expiryDate": "2025-07-15",
     "category": "Beverages"
@@ -271,6 +293,7 @@
     "image": "https://domf5oio6qrcr.cloudfront.net/medialibrary/8468/Tea.jpg",
     "mrp": 375.0,
     "sellingPrice": 337.5,
+    "costPrice": 320.0,
     "location": { "rack": "L1", "row": "M1" },
     "expiryDate": "2025-08-30",
     "category": "Beverages"
@@ -283,6 +306,7 @@
     "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYuYjAb6gSohmcPVx4FwM2AAYCP3dxchBigg&s",
     "mrp": 60.0,
     "sellingPrice": 52.5,
+    "costPrice": 50.0,
     "location": { "rack": "L1", "row": "M2" },
     "expiryDate": "2026-12-31",
     "category": "Beverages"
@@ -295,6 +319,7 @@
     "image": "https://5.imimg.com/data5/SELLER/Default/2020/12/OM/ZU/BN/119495321/frozen-green-peas.jpg",
     "mrp": 225.0,
     "sellingPrice": 202.5,
+    "costPrice": 190.0,
     "location": { "rack": "M1", "row": "N1" },
     "expiryDate": "2025-04-05",
     "category": "Frozen Foods"

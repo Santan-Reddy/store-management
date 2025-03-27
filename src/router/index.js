@@ -5,7 +5,7 @@ import newBill from '@/pages/new-bill.vue'
 import updateStock from '@/pages/update-stock.vue'
 import expiredStock from '@/pages/expired-stock.vue'
 import profile from '@/pages/profile.vue'
-import discount from '@/pages/discount.vue'
+import updatePrice from '@/pages/update-price.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -36,9 +36,9 @@ const router = createRouter({
       component: expiredStock,
     },
     {
-      path: '/discount',
-      name: 'discount',
-      component: discount,
+      path: '/update-price',
+      name: 'update-price',
+      component: updatePrice,
     },
     {
       path: '/profile',

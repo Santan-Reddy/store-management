@@ -93,15 +93,17 @@ function confirmPurchase() {
   // Update stock for bill items
   updateStockForBill()
 
-  // Create purchase record including customer name, phone, and overall discount
+  // Create purchase record including additional price details
   const purchaseRecord = {
     id: Date.now(),
     customerName: purchaseDetails.value.customerName,
     phone: purchaseDetails.value.phone,
     purchaseDate: new Date().toLocaleString(),
     items: JSON.parse(JSON.stringify(billItems.value)), // deep copy
-    total: finalTotal.value.toFixed(2),
+    actualPrice: originalTotal.value.toFixed(2),
     overallDiscount: discount,
+    finalPrice: finalTotal.value.toFixed(2),
+    total: finalTotal.value.toFixed(2),
   }
 
   addPurchase(purchaseRecord)

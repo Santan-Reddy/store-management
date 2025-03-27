@@ -7,10 +7,13 @@ const { products } = useProducts()
 // Search query to filter products
 const searchQuery = ref('')
 
-// Reactive object to store discount percentages keyed by product ID
-const discountValues = ref({})
+// Reactive object to store profit margin percentages keyed by product ID.
+const profitMarginValues = ref({})
 
-// Computed property to filter products based on the search query
+// Reactive object to store manual entered price keyed by product ID.
+const manualPriceValues = ref({})
+
+// Computed property to filter products based on the search query.
 const filteredProducts = computed(() => {
   if (!searchQuery.value.trim()) {
     return products.value
@@ -20,28 +23,41 @@ const filteredProducts = computed(() => {
   )
 })
 
-// Function to apply discount to a product
-function applyDiscount(productId) {
-  const discount = parseFloat(discountValues.value[productId])
-  if (isNaN(discount) || discount < 0 || discount > 100) {
-    alert('Please enter a valid discount percentage (0-100)')
+// Function to apply profit margin to a product.
+// New selling price = costPrice * (1 + profit/100)
+function applyProfitMargin(productId) {
+  const profit = parseFloat(profitMarginValues.value[productId])
+  if (isNaN(profit) || profit < 0) {
+    alert('Please enter a valid profit margin percentage (>= 0)')
     return
   }
   const product = products.value.find((p) => p.id === productId)
   if (product) {
-    // Calculate new selling price based on the discount percentage.
-    // Note: In a real app, you might want to preserve the original price.
-    product.sellingPrice = parseFloat((product.sellingPrice * (1 - discount / 100)).toFixed(2))
+    product.sellingPrice = parseFloat((product.costPrice * (1 + profit / 100)).toFixed(2))
     alert(
-      `Discount of ${discount}% applied to ${product.name}. New price: ${product.sellingPrice}/-`,
+      `Profit margin of ${profit}% applied to ${product.name}. New selling price: ${product.sellingPrice}/-`,
     )
+  }
+}
+
+// Function to manually update selling price using an entered price.
+function applyManualPrice(productId) {
+  const newPrice = parseFloat(manualPriceValues.value[productId])
+  if (isNaN(newPrice) || newPrice < 0) {
+    alert('Please enter a valid price')
+    return
+  }
+  const product = products.value.find((p) => p.id === productId)
+  if (product) {
+    product.sellingPrice = parseFloat(newPrice.toFixed(2))
+    alert(`New selling price for ${product.name} updated to ${product.sellingPrice}/-`)
   }
 }
 </script>
 
 <template>
   <div class="discount-container">
-    <h1>Discount</h1>
+    <h1>Update Price</h1>
     <div class="search-section">
       <input
         v-model="searchQuery"
@@ -54,26 +70,40 @@ function applyDiscount(productId) {
       <thead>
         <tr>
           <th>Product Name</th>
+          <th>Cost Price</th>
           <th>Current Selling Price</th>
-          <th>Discount (%)</th>
-          <th>Action</th>
+          <th>Profit Margin (%)</th>
+          <th>Action (Apply Profit)</th>
+          <th>Enter Price</th>
+          <th>Update Price</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="product in filteredProducts" :key="product.id">
           <td>{{ product.name }}</td>
+          <td>{{ product.costPrice }}/-</td>
           <td>{{ product.sellingPrice }}/-</td>
           <td>
             <input
               type="number"
-              v-model="discountValues[product.id]"
+              v-model="profitMarginValues[product.id]"
               min="0"
-              max="100"
-              placeholder="Discount"
+              placeholder="Profit %"
             />
           </td>
           <td>
-            <button @click="applyDiscount(product.id)">Apply Discount</button>
+            <button @click="applyProfitMargin(product.id)">Apply Profit</button>
+          </td>
+          <td>
+            <input
+              type="number"
+              v-model="manualPriceValues[product.id]"
+              min="0"
+              placeholder="Enter Price"
+            />
+          </td>
+          <td>
+            <button @click="applyManualPrice(product.id)">Update Price</button>
           </td>
         </tr>
       </tbody>
@@ -89,6 +119,7 @@ function applyDiscount(productId) {
 
 .search-section {
   margin-bottom: 20px;
+  margin-top: 10px;
 }
 
 .search-input {
