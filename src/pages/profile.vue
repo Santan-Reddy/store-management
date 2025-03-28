@@ -1,11 +1,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { usePurchases } from '@/composables/usePurchases'
+import { useProducts } from '@/composables/useProducts'
+import api from '@/api'
 
-// Destructure purchases and fetchPurchases from the composable
 const { purchases, fetchPurchases } = usePurchases()
+const { products, refreshProducts } = useProducts()
 
-// Fetch purchases from backend when component mounts
+// Fetch purchases when component mounts
 onMounted(() => {
   fetchPurchases()
 })
@@ -13,7 +15,7 @@ onMounted(() => {
 const selectedPurchase = ref(null)
 const searchQuery = ref('')
 
-// Filter purchases by customer name, purchase date, or phone number (case-insensitive)
+// Computed property to filter purchases by customer name, date, or phone
 const filteredPurchases = computed(() => {
   if (!searchQuery.value.trim()) return purchases.value
   const query = searchQuery.value.toLowerCase()
@@ -28,10 +30,52 @@ const filteredPurchases = computed(() => {
 function selectPurchase(purchase) {
   selectedPurchase.value = purchase
 }
+
+// Reset Database function: Delete each product and purchase one by one
+async function resetDatabase() {
+  if (
+    confirm(
+      'WARNING: This action will delete ALL products and purchases from the database. This cannot be undone. Are you sure you want to proceed?',
+    )
+  ) {
+    try {
+      // Delete products one by one
+      for (const product of products.value) {
+        const prodId = product.id || product._id
+        try {
+          await api.delete(`/products/${prodId}`)
+        } catch (error) {
+          console.error('Error deleting product', prodId, error)
+        }
+      }
+      // Delete purchases one by one using the DELETE /purchases/:id endpoint
+      for (const purchase of purchases.value) {
+        const purchaseId = purchase.id || purchase._id
+        try {
+          await api.delete(`/purchases/${purchaseId}`)
+        } catch (error) {
+          console.error('Error deleting purchase', purchaseId, error)
+        }
+      }
+      alert('Database reset successfully!')
+      // Refresh local data
+      await refreshProducts()
+      await fetchPurchases()
+      selectedPurchase.value = null
+    } catch (error) {
+      alert('Error resetting database: ' + error.message)
+    }
+  }
+}
 </script>
 
 <template>
   <div class="profile-container">
+    <!-- Reset Database Button at Top Right -->
+    <div class="reset-db">
+      <button @click="resetDatabase">Reset Database</button>
+    </div>
+
     <!-- Left Panel: Recent Purchases List -->
     <div class="left-panel">
       <h2>Recent Purchases</h2>
@@ -44,9 +88,13 @@ function selectPurchase(purchase) {
       <ul class="purchase-list">
         <li
           v-for="purchase in filteredPurchases"
-          :key="purchase.id"
+          :key="purchase.id || purchase._id"
           @click="selectPurchase(purchase)"
-          :class="{ active: selectedPurchase && selectedPurchase.id === purchase.id }"
+          :class="{
+            active:
+              selectedPurchase &&
+              (selectedPurchase.id || selectedPurchase._id) === (purchase.id || purchase._id),
+          }"
         >
           <p>
             <strong>{{ purchase.customerName }}</strong>
@@ -67,7 +115,7 @@ function selectPurchase(purchase) {
         <p><strong>Customer Name:</strong> {{ selectedPurchase.customerName }}</p>
         <p><strong>Phone Number:</strong> {{ selectedPurchase.phone }}</p>
         <p><strong>Purchase Date:</strong> {{ selectedPurchase.purchaseDate }}</p>
-        <!-- New fields to show price details -->
+        <!-- Price details -->
         <p><strong>Actual Price:</strong> {{ selectedPurchase.actualPrice }}/-</p>
         <p><strong>Discount:</strong> {{ selectedPurchase.overallDiscount }}%</p>
         <p><strong>Final Price:</strong> {{ selectedPurchase.finalPrice }}/-</p>
@@ -81,7 +129,7 @@ function selectPurchase(purchase) {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in selectedPurchase.items" :key="item.product.id">
+            <tr v-for="item in selectedPurchase.items" :key="item.product.id || item.product._id">
               <td>{{ item.product.name }}</td>
               <td>{{ item.quantity }}</td>
               <td>{{ item.product.sellingPrice }}/-</td>
@@ -101,6 +149,27 @@ function selectPurchase(purchase) {
   gap: 20px;
   padding: 20px;
   background-color: #fafafa;
+  position: relative;
+}
+
+.reset-db {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.reset-db button {
+  padding: 8px 16px;
+  background-color: #c62828;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.reset-db button:hover {
+  background-color: #d32f2f;
 }
 
 .left-panel {
