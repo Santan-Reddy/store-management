@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProducts } from '@/composables/useProducts'
 
-const { products } = useProducts()
+const { products, loading, error } = useProducts()
 const router = useRouter()
 
 // Define thresholds
@@ -27,8 +27,7 @@ const lowStockProducts = computed(() => {
   return products.value.filter((product) => product.quantity < lowStockThreshold)
 })
 
-// Compute most selling products in the last 7 days
-// Here, we assume the "soldCount" field reflects sales in the last 7 days.
+// Compute most selling products (we assume "soldCount" reflects sales in the last 7 days)
 const mostSellingProducts = computed(() => {
   return [...products.value].sort((a, b) => b.soldCount - a.soldCount).slice(0, 4)
 })
@@ -43,66 +42,80 @@ function navigateTo(path) {
   <div class="dashboard-container">
     <h1>Dashboard</h1>
 
-    <!-- Top Action Buttons -->
-    <div class="dashboard-actions">
-      <button @click="navigateTo('/search')">Search Product</button>
-      <button @click="navigateTo('/new-bill')">New Bill</button>
-    </div>
+    <!-- Loading and Error states -->
+    <div v-if="loading">Loading products...</div>
+    <div v-else>
+      <div v-if="error" class="error-message">{{ error.message }}</div>
 
-    <!-- Expiry Section -->
-    <div class="section">
-      <div class="section-header">
-        <h2>Expiring / Expired Products</h2>
-        <button @click="navigateTo('/expired-stock')">View All</button>
+      <!-- Top Action Buttons -->
+      <div class="dashboard-actions">
+        <button @click="navigateTo('/search')">Search Product</button>
+        <button @click="navigateTo('/new-bill')">New Bill</button>
       </div>
-      <div class="products-list">
-        <div v-for="product in expiringProducts.slice(0, 4)" :key="product.id" class="product-card">
-          <img :src="product.image" :alt="product.name" />
-          <div class="product-details">
-            <h3>{{ product.name }}</h3>
-            <p>Quantity: {{ product.quantity }}</p>
-            <p>MRP: {{ product.mrp }}/-</p>
-            <p>Selling Price: {{ product.sellingPrice }}/-</p>
-            <p>Location: Rack {{ product.location.rack }}, Row {{ product.location.row }}</p>
-            <p>Expiry: {{ product.expiryDate }}</p>
+
+      <!-- Expiry Section -->
+      <div class="section">
+        <div class="section-header">
+          <h2>Expiring / Expired Products</h2>
+          <button @click="navigateTo('/expired-stock')">View All</button>
+        </div>
+        <div class="products-list">
+          <div
+            v-for="product in expiringProducts.slice(0, 4)"
+            :key="product.id"
+            class="product-card"
+          >
+            <img :src="product.image" :alt="product.name" />
+            <div class="product-details">
+              <h3>{{ product.name }}</h3>
+              <p>Quantity: {{ product.quantity }}</p>
+              <p>MRP: {{ product.mrp }}/-</p>
+              <p>Selling Price: {{ product.sellingPrice }}/-</p>
+              <p>Location: Rack {{ product.location.rack }}, Row {{ product.location.row }}</p>
+              <p>Expiry: {{ product.expiryDate.split('T')[0] }}</p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Low Stock Section -->
-    <div class="section">
-      <div class="section-header">
-        <h2>Low Stock Products</h2>
-        <button @click="navigateTo('/update-stock')">View All</button>
-      </div>
-      <div class="products-list">
-        <div v-for="product in lowStockProducts.slice(0, 4)" :key="product.id" class="product-card">
-          <img :src="product.image" :alt="product.name" />
-          <div class="product-details">
-            <h3>{{ product.name }}</h3>
-            <p>Quantity: {{ product.quantity }}</p>
-            <p>MRP: {{ product.mrp }}/-</p>
-            <p>Selling Price: {{ product.sellingPrice }}/-</p>
-            <p>Location: Rack {{ product.location.rack }}, Row {{ product.location.row }}</p>
-            <p>Expiry: {{ product.expiryDate }}</p>
+      <!-- Low Stock Section -->
+      <div class="section">
+        <div class="section-header">
+          <h2>Low Stock Products</h2>
+          <button @click="navigateTo('/update-stock')">View All</button>
+        </div>
+        <div class="products-list">
+          <div
+            v-for="product in lowStockProducts.slice(0, 4)"
+            :key="product.id"
+            class="product-card"
+          >
+            <img :src="product.image" :alt="product.name" />
+            <div class="product-details">
+              <h3>{{ product.name }}</h3>
+              <p>Quantity: {{ product.quantity }}</p>
+              <p>MRP: {{ product.mrp }}/-</p>
+              <p>Selling Price: {{ product.sellingPrice }}/-</p>
+              <p>Location: Rack {{ product.location.rack }}, Row {{ product.location.row }}</p>
+              <p>Expiry: {{ product.expiryDate.split('T')[0] }}</p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Most Selling Products Section -->
-    <div class="section">
-      <div class="section-header">
-        <h2>Most Selling Products (Last 7 Days)</h2>
-      </div>
-      <div class="products-list">
-        <div v-for="product in mostSellingProducts" :key="product.id" class="product-card">
-          <img :src="product.image" :alt="product.name" />
-          <div class="product-details">
-            <h3>{{ product.name }}</h3>
-            <p>Selling Price: {{ product.sellingPrice }}/-</p>
-            <p>Quantity Sold: {{ product.soldCount }}</p>
+      <!-- Most Selling Products Section -->
+      <div class="section">
+        <div class="section-header">
+          <h2>Most Selling Products (Last 7 Days)</h2>
+        </div>
+        <div class="products-list">
+          <div v-for="product in mostSellingProducts" :key="product.id" class="product-card">
+            <img :src="product.image" :alt="product.name" />
+            <div class="product-details">
+              <h3>{{ product.name }}</h3>
+              <p>Selling Price: {{ product.sellingPrice }}/-</p>
+              <p>Quantity Sold: {{ product.soldCount }}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -213,5 +226,10 @@ function navigateTo(path) {
   margin: 4px 0;
   font-size: 0.9em;
   color: #555;
+}
+
+.error-message {
+  color: red;
+  margin-bottom: 20px;
 }
 </style>

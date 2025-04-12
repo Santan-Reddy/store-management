@@ -2,7 +2,7 @@
 import { ref, computed, watchEffect } from 'vue'
 import { useProducts } from '@/composables/useProducts'
 
-const { products } = useProducts()
+const { products, loading, error } = useProducts() // Now includes loading and error from API fetch
 const searchQuery = ref('')
 const selectedCategory = ref('')
 
@@ -25,7 +25,7 @@ const filteredProducts = computed(() => {
   })
 })
 
-// Debug: Log products and categories to check if they're loaded correctly
+// Debug: Log products and categories (optional)
 watchEffect(() => {
   console.log('Products:', products.value)
   console.log('Categories:', categories.value)
@@ -47,7 +47,13 @@ watchEffect(() => {
         <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
       </select>
     </div>
-    <div class="products-list">
+
+    <!-- Display loading or error messages -->
+    <div v-if="loading">Loading products...</div>
+    <div v-else-if="error" class="error-message">Error: {{ error.message }}</div>
+
+    <!-- Display the product list when data is available -->
+    <div v-else class="products-list">
       <div v-for="product in filteredProducts" :key="product.id" class="product-card">
         <img :src="product.image" :alt="product.name" />
         <div class="product-details">
@@ -57,7 +63,7 @@ watchEffect(() => {
           <p>MRP: {{ product.mrp }}/-</p>
           <p>Selling Price: {{ product.sellingPrice }}/-</p>
           <p>Location: Rack {{ product.location.rack }}, Row {{ product.location.row }}</p>
-          <p>Expiry: {{ product.expiryDate }}</p>
+          <p>Expiry: {{ product.expiryDate.split('T')[0] }}</p>
         </div>
       </div>
     </div>
@@ -89,6 +95,11 @@ watchEffect(() => {
   font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 4px;
+}
+
+.error-message {
+  color: red;
+  margin-bottom: 10px;
 }
 
 .products-list {

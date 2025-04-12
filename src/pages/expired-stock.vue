@@ -1,8 +1,10 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useProducts } from '@/composables/useProducts'
+import api from '@/api' // Axios instance for API calls
 
-const { products } = useProducts()
+const { products, refreshProducts } = useProducts()
+
 const now = new Date()
 const expiryThresholdDays = 7
 
@@ -11,7 +13,7 @@ const expiredProducts = computed(() => {
   return products.value.filter((product) => new Date(product.expiryDate) < now)
 })
 
-// Compute products expiring soon (expiry date in the future within threshold)
+// Compute products expiring soon (within expiryThresholdDays)
 const expiringProducts = computed(() => {
   return products.value.filter((product) => {
     const expiryDate = new Date(product.expiryDate)
@@ -20,32 +22,47 @@ const expiringProducts = computed(() => {
   })
 })
 
-// Function to remove a single expired product from stock (set quantity to 0)
-function removeFromStock(productId) {
-  const product = products.value.find((p) => p.id === productId)
+// Function to remove a single expired product from stock via API call
+async function removeFromStock(product) {
+  const productId = product.id || product._id
   if (product && product.quantity !== 0) {
     if (
       confirm(
         `Are you sure you want to remove ${product.name} from stock? This will set its quantity to 0.`,
       )
     ) {
-      product.quantity = 0
+      try {
+        await api.patch(`/products/${productId}`, { quantity: 0 })
+        product.quantity = 0 // update local state
+        // Optionally, refresh the product list:
+        // await refreshProducts()
+      } catch (error) {
+        alert('Error updating product: ' + error.message)
+      }
     }
   }
 }
 
-// Function to remove all expired products from stock
-function removeAllExpired() {
+// Function to remove all expired products from stock using API calls
+async function removeAllExpired() {
   if (
     confirm(
       'Are you sure you want to remove all expired products from stock? This will set their quantities to 0.',
     )
   ) {
-    expiredProducts.value.forEach((product) => {
+    for (const product of expiredProducts.value) {
       if (product.quantity !== 0) {
-        product.quantity = 0
+        try {
+          const productId = product.id || product._id
+          await api.patch(`/products/${productId}`, { quantity: 0 })
+          product.quantity = 0
+        } catch (error) {
+          console.error('Error updating product', productId, error)
+        }
       }
-    })
+    }
+    // Optionally, refresh the product list:
+    // await refreshProducts()
   }
 }
 
@@ -55,19 +72,25 @@ function removeAllExpired() {
 const profitValues = ref({})
 
 // Function to apply profit margin to a product that is expiring soon.
-// New selling price is calculated based on costPrice and entered profit percentage.
-function applyProfit(productId) {
+// New selling price = costPrice * (1 + profit/100)
+async function applyProfit(product) {
+  const productId = product.id || product._id
   const profit = parseFloat(profitValues.value[productId])
   if (isNaN(profit) || profit < 0) {
     alert('Please enter a valid profit percentage (>= 0)')
     return
   }
-  const product = products.value.find((p) => p.id === productId)
   if (product) {
-    product.sellingPrice = parseFloat((product.costPrice * (1 + profit / 100)).toFixed(2))
-    alert(
-      `Profit margin of ${profit}% applied to ${product.name}. New selling price: ${product.sellingPrice}/-`,
-    )
+    const newSellingPrice = parseFloat((product.costPrice * (1 + profit / 100)).toFixed(2))
+    try {
+      await api.patch(`/products/${productId}`, { sellingPrice: newSellingPrice })
+      product.sellingPrice = newSellingPrice // update local state
+      alert(
+        `Profit margin of ${profit}% applied to ${product.name}. New selling price: ${product.sellingPrice}/-`,
+      )
+    } catch (error) {
+      alert('Error applying profit margin: ' + error.message)
+    }
   }
 }
 
@@ -102,13 +125,13 @@ function getCurrentProfit(product) {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="product in expiredProducts" :key="product.id">
+          <tr v-for="product in expiredProducts" :key="product.id || product._id">
             <td>{{ product.name }}</td>
             <td>{{ product.quantity }}</td>
-            <td>{{ product.expiryDate }}</td>
+            <td>{{ product.expiryDate.split('T')[0] }}</td>
             <td>{{ Math.floor((now - new Date(product.expiryDate)) / (1000 * 60 * 60 * 24)) }}</td>
             <td>
-              <button @click="removeFromStock(product.id)" :disabled="product.quantity === 0">
+              <button @click="removeFromStock(product)" :disabled="product.quantity === 0">
                 {{ product.quantity === 0 ? 'Removed' : 'Remove from Stock' }}
               </button>
             </td>
@@ -134,21 +157,21 @@ function getCurrentProfit(product) {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="product in expiringProducts" :key="product.id">
+          <tr v-for="product in expiringProducts" :key="product.id || product._id">
             <td>{{ product.name }}</td>
             <td>{{ product.quantity }}</td>
-            <td>{{ product.expiryDate }}</td>
+            <td>{{ product.expiryDate.split('T')[0] }}</td>
             <td>{{ Math.floor((new Date(product.expiryDate) - now) / (1000 * 60 * 60 * 24)) }}</td>
             <td>
               <input
                 type="number"
-                v-model="profitValues[product.id]"
+                v-model="profitValues[product.id || product._id]"
                 min="0"
                 placeholder="Profit %"
               />
             </td>
             <td>
-              <button @click="applyProfit(product.id)">Apply Profit</button>
+              <button @click="applyProfit(product)">Apply Profit</button>
             </td>
             <td>
               Cost: {{ product.costPrice }}/- , Selling: {{ product.sellingPrice }}/- ({{

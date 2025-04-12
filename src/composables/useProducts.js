@@ -1,30 +1,31 @@
-import { ref, watch } from 'vue'
-import initialProducts from '@/data/products.json'
-
-const STORAGE_KEY = 'productsData'
+// src/composables/useProducts.js
+import { ref, onMounted } from 'vue'
+import api from '@/api'
 
 export function useProducts() {
   const products = ref([])
+  const loading = ref(false)
+  const error = ref(null)
 
-  const storedProducts = localStorage.getItem(STORAGE_KEY)
-  if (storedProducts) {
+  // Function to fetch products from the backend
+  const fetchProducts = async () => {
+    loading.value = true
     try {
-      products.value = JSON.parse(storedProducts)
-    } catch (error) {
-      console.error('Error parsing stored products, using initial data', error)
-      products.value = initialProducts
+      const response = await api.get('/products')
+      products.value = response.data
+    } catch (err) {
+      error.value = err
+      console.error('Error fetching products:', err)
+    } finally {
+      loading.value = false
     }
-  } else {
-    products.value = initialProducts
   }
 
-  watch(
-    products,
-    (newProducts) => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newProducts))
-    },
-    { deep: true },
-  )
+  // Fetch products on component mount
+  onMounted(fetchProducts)
 
-  return { products }
+  // Optionally, a function to refresh or update products after CRUD operations
+  const refreshProducts = fetchProducts
+
+  return { products, loading, error, refreshProducts }
 }

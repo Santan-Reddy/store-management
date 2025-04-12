@@ -2,8 +2,11 @@
 import { ref, computed } from 'vue'
 import { useProducts } from '@/composables/useProducts'
 import { usePurchases } from '@/composables/usePurchases'
+import api from '@/api' // Axios instance
 
-const { products } = useProducts()
+// Get products and a method to refresh products from the backend
+const { products, refreshProducts } = useProducts()
+// Get the addPurchase function from the purchases composable (which makes a POST API call)
 const { addPurchase } = usePurchases()
 
 // For product search
@@ -12,7 +15,7 @@ const searchQuery = ref('')
 // Bill items (each item contains the product and the purchase quantity)
 const billItems = ref([])
 
-// Filter products based on the search query
+// Computed property to filter products based on the search query
 const filteredProducts = computed(() => {
   if (searchQuery.value.trim() === '') return products.value
   return products.value.filter((product) =>
@@ -22,11 +25,14 @@ const filteredProducts = computed(() => {
 
 // Add a product to the bill (if already added, increase quantity by 1)
 function addToBill(product) {
+  const prodId = product.id || product._id
   if (product.quantity === 0) {
     alert(`${product.name} is out of stock`)
     return
   }
-  const existingItem = billItems.value.find((item) => item.product.id === product.id)
+  const existingItem = billItems.value.find(
+    (item) => (item.product.id || item.product._id) === prodId,
+  )
   if (existingItem) {
     if (existingItem.quantity < product.quantity) {
       existingItem.quantity += 1
@@ -40,17 +46,25 @@ function addToBill(product) {
 
 // Remove a product from the bill
 function removeFromBill(productId) {
-  billItems.value = billItems.value.filter((item) => item.product.id !== productId)
+  billItems.value = billItems.value.filter(
+    (item) => (item.product.id || item.product._id) !== productId,
+  )
 }
 
-// Update stock for each product in the bill
-function updateStockForBill() {
-  billItems.value.forEach((item) => {
-    const prod = products.value.find((p) => p.id === item.product.id)
-    if (prod) {
-      prod.quantity = Math.max(prod.quantity - item.quantity, 0)
+// Update stock for each product in the bill via API calls
+async function updateStockForBill() {
+  for (const item of billItems.value) {
+    const prod = item.product
+    const prodId = prod.id || prod._id
+    const newQuantity = Math.max(prod.quantity - item.quantity, 0)
+    try {
+      await api.patch(`/products/${prodId}`, { quantity: newQuantity })
+      // Update local state after successful API update
+      prod.quantity = newQuantity
+    } catch (err) {
+      console.error(`Error updating product ${prodId}:`, err)
     }
-  })
+  }
 }
 
 // --- Modal for Purchase Details --- //
@@ -76,7 +90,7 @@ const finalTotal = computed(() => {
 })
 
 // Function to confirm purchase from modal
-function confirmPurchase() {
+async function confirmPurchase() {
   if (!purchaseDetails.value.customerName.trim()) {
     alert('Please enter customer name')
     return
@@ -90,15 +104,14 @@ function confirmPurchase() {
   if (isNaN(discount) || discount < 0) discount = 0
   if (discount > 100) discount = 100
 
-  // Update stock for bill items
-  updateStockForBill()
+  // Update stock for each bill item via API call
+  await updateStockForBill()
 
-  // Create purchase record including additional price details
+  // Create purchase record with valid ISO date for purchaseDate
   const purchaseRecord = {
-    id: Date.now(),
     customerName: purchaseDetails.value.customerName,
     phone: purchaseDetails.value.phone,
-    purchaseDate: new Date().toLocaleString(),
+    purchaseDate: new Date().toISOString(), // Use ISO format
     items: JSON.parse(JSON.stringify(billItems.value)), // deep copy
     actualPrice: originalTotal.value.toFixed(2),
     overallDiscount: discount,
@@ -106,16 +119,21 @@ function confirmPurchase() {
     total: finalTotal.value.toFixed(2),
   }
 
-  addPurchase(purchaseRecord)
-
-  // Clear the bill and purchase details, then hide the modal
-  billItems.value = []
-  purchaseDetails.value = { customerName: '', phone: '', overallDiscount: '' }
-  showPurchaseModal.value = false
-  alert('Purchase completed successfully!')
+  try {
+    await addPurchase(purchaseRecord)
+    // Optionally refresh products from the backend after purchase
+    await refreshProducts()
+    // Clear bill items and purchase details, then hide modal
+    billItems.value = []
+    purchaseDetails.value = { customerName: '', phone: '', overallDiscount: '' }
+    showPurchaseModal.value = false
+    alert('Purchase completed successfully!')
+  } catch (err) {
+    alert('Error completing purchase: ' + err.message)
+  }
 }
 
-// When Complete Purchase is clicked, show the modal
+// When "Complete Purchase" is clicked, show the modal
 function completePurchase() {
   if (billItems.value.length === 0) {
     alert('No products in the bill')
@@ -137,7 +155,11 @@ function completePurchase() {
         class="search-input"
       />
       <div class="product-list">
-        <div class="product-card" v-for="product in filteredProducts" :key="product.id">
+        <div
+          class="product-card"
+          v-for="product in filteredProducts"
+          :key="product.id || product._id"
+        >
           <img :src="product.image" :alt="product.name" />
           <div class="details">
             <h3>{{ product.name }}</h3>
@@ -167,7 +189,7 @@ function completePurchase() {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in billItems" :key="item.product.id">
+            <tr v-for="item in billItems" :key="item.product.id || item.product._id">
               <td>{{ item.product.name }}</td>
               <td>
                 <input
@@ -180,7 +202,7 @@ function completePurchase() {
               <td>{{ item.product.sellingPrice }}/-</td>
               <td>{{ (item.product.sellingPrice * item.quantity).toFixed(2) }}/-</td>
               <td>
-                <button @click="removeFromBill(item.product.id)">Remove</button>
+                <button @click="removeFromBill(item.product.id || item.product._id)">Remove</button>
               </td>
             </tr>
           </tbody>
@@ -424,7 +446,8 @@ function completePurchase() {
   font-weight: bold;
 }
 
-.form-row input {
+.form-row input,
+.form-row select {
   flex: 1;
   padding: 8px;
   border: 1px solid #ccc;
