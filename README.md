@@ -13,7 +13,7 @@ See [Vite Configuration Reference](https://vite.dev/config/).
 ## Project Setup
 
 ```sh
-npm clone `url of repo`
+npm clone {url of repo}
 ```
 
 ```sh
