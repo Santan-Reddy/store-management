@@ -26,6 +26,12 @@ npm install
 npm run dev
 ```
 
+### Then visit - 
+
+```sh
+localhost: {port number}
+```
+
 ### Compile and Minify for Production
 
 ```sh
