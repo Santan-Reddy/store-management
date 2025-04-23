@@ -32,7 +32,9 @@ npm run dev
 localhost: {port number}
 ```
 
-### Compile and Minify for Production
+
+
+### (Other) Compile and Minify for Production
 
 ```sh
 npm run build
